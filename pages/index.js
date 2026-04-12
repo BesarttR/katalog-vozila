@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { supabase } from '../lib/supabase';
 
@@ -23,6 +23,10 @@ export default function Home() {
     load();
   }, []);
 
+  if (selected) {
+    return <VanPage van={selected} onBack={() => setSelected(null)} />;
+  }
+
   return (
     <>
       <Head>
@@ -42,9 +46,7 @@ export default function Home() {
               justify-content: flex-end !important;
               flex-shrink: 0 !important;
             }
-            .hero-btn {
-              width: 200px !important;
-            }
+            .hero-btn { width: 200px !important; }
             .van-grid {
               grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
             }
@@ -88,21 +90,15 @@ export default function Home() {
 
         {/* VAN LIST */}
         <div className="van-grid" style={{ padding: '24px', maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
-          {loading && (
-            <p style={{ textAlign: 'center', color: '#aaa', padding: '60px 0', fontSize: 15 }}>Се вчитува...</p>
-          )}
-          {!loading && vans.length === 0 && (
-            <p style={{ textAlign: 'center', color: '#aaa', padding: '60px 0', fontSize: 15 }}>
-              Во моментов нема достапни возила.
-            </p>
-          )}
+          {loading && <p style={{ textAlign: 'center', color: '#aaa', padding: '60px 0', fontSize: 15 }}>Се вчитува...</p>}
+          {!loading && vans.length === 0 && <p style={{ textAlign: 'center', color: '#aaa', padding: '60px 0', fontSize: 15 }}>Во моментов нема достапни возила.</p>}
           {vans.map(van => (
             <VanCard key={van.id} van={van} onClick={() => setSelected(van)} />
           ))}
         </div>
 
         {/* FOOTER */}
-        <footer style={{ background: '#111', color: '#aaa', marginTop: 8, padding: '24px 24px' }}>
+        <footer style={{ background: '#111', color: '#aaa', marginTop: 8, padding: '24px' }}>
           <div className="footer-inner">
             <div style={{ marginBottom: 16 }}>
               <p style={{ color: '#fff', fontWeight: 700, fontSize: 15, marginBottom: 2 }}>ADEA Autos</p>
@@ -120,8 +116,6 @@ export default function Home() {
           </div>
         </footer>
       </div>
-
-      {selected && <VanModal van={selected} onClose={() => setSelected(null)} />}
     </>
   );
 }
@@ -163,37 +157,198 @@ function VanCard({ van, onClick }) {
   );
 }
 
-function VanModal({ van, onClose }) {
+function SmoothGallery({ images, onFullscreen }) {
+  const [current, setCurrent] = useState(0);
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startX = useRef(null);
+  const containerRef = useRef(null);
+
+  const goTo = (index) => {
+    setCurrent(Math.max(0, Math.min(images.length - 1, index)));
+    setDragX(0);
+  };
+
+  const onTouchStart = (e) => { startX.current = e.touches[0].clientX; setDragging(true); };
+  const onTouchMove = (e) => {
+    if (startX.current === null) return;
+    const diff = e.touches[0].clientX - startX.current;
+    if ((current === 0 && diff > 0) || (current === images.length - 1 && diff < 0)) {
+      setDragX(diff * 0.2);
+    } else {
+      setDragX(diff);
+    }
+  };
+  const onTouchEnd = (e) => {
+    const diff = startX.current - e.changedTouches[0].clientX;
+    setDragging(false);
+    if (Math.abs(diff) > 50) goTo(diff > 0 ? current + 1 : current - 1);
+    else setDragX(0);
+    startX.current = null;
+  };
+
+  const w = containerRef.current?.offsetWidth || 0;
+  const translateX = -(current * w) + dragX;
+
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: '16px 16px 0 0', width: '100%', maxWidth: 480, maxHeight: '92vh', overflowY: 'auto' }}>
-        {van.images?.[0] && (
-          <img src={van.images[0]} alt={van.title} style={{ width: '100%', height: 240, objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />
-        )}
-        <div style={{ padding: '20px 16px 32px' }}>
-          <div style={{ marginBottom: 12 }}>
-            <button onClick={onClose} style={{ background: '#f5f5f3', border: '1px solid #e5e5e2', color: '#444', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', marginBottom: 10 }}>← Назад</button>
-            <h2 style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.3 }}>{van.title}</h2>
+    <div ref={containerRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
+      style={{ position: 'relative', width: '100%', height: 300, overflow: 'hidden', background: '#111' }}>
+      <div style={{
+        display: 'flex', height: '100%',
+        width: `${images.length * 100}%`,
+        transform: `translateX(${translateX}px)`,
+        transition: dragging ? 'none' : 'transform 0.3s ease',
+        willChange: 'transform',
+      }}>
+        {images.map((img, i) => (
+          <div key={i} style={{ width: `${100 / images.length}%`, height: '100%', flexShrink: 0 }}>
+            <img src={img} alt="" onClick={() => onFullscreen(i)}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in', display: 'block' }} />
           </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+        ))}
+      </div>
+      {current > 0 && (
+        <button onClick={() => goTo(current - 1)} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.45)', border: 'none', color: '#fff', borderRadius: '50%', width: 36, height: 36, fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
+      )}
+      {current < images.length - 1 && (
+        <button onClick={() => goTo(current + 1)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.45)', border: 'none', color: '#fff', borderRadius: '50%', width: 36, height: 36, fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
+      )}
+      {images.length > 1 && (
+        <div style={{ position: 'absolute', bottom: 10, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 5 }}>
+          {images.map((_, i) => (
+            <div key={i} onClick={() => goTo(i)} style={{ width: 6, height: 6, borderRadius: '50%', background: i === current ? '#fff' : 'rgba(255,255,255,0.4)', cursor: 'pointer' }} />
+          ))}
+        </div>
+      )}
+      <div style={{ position: 'absolute', top: 10, right: 12, background: 'rgba(0,0,0,0.45)', color: '#fff', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20 }}>
+        {current + 1} / {images.length}
+      </div>
+    </div>
+  );
+}
+
+function FullscreenViewer({ images, startIndex, onClose }) {
+  const [current, setCurrent] = useState(startIndex);
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startX = useRef(null);
+
+  const goTo = (index) => {
+    setCurrent(Math.max(0, Math.min(images.length - 1, index)));
+    setDragX(0);
+  };
+
+  const onTouchStart = (e) => { startX.current = e.touches[0].clientX; setDragging(true); };
+  const onTouchMove = (e) => {
+    if (startX.current === null) return;
+    const diff = e.touches[0].clientX - startX.current;
+    if ((current === 0 && diff > 0) || (current === images.length - 1 && diff < 0)) {
+      setDragX(diff * 0.2);
+    } else {
+      setDragX(diff);
+    }
+  };
+  const onTouchEnd = (e) => {
+    const diff = startX.current - e.changedTouches[0].clientX;
+    setDragging(false);
+    if (Math.abs(diff) > 50) goTo(diff > 0 ? current + 1 : current - 1);
+    else setDragX(0);
+    startX.current = null;
+  };
+
+  // Use window.innerWidth for fullscreen - each slide is exactly 100vw
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 390;
+  const translateX = -(current * vw) + dragX;
+
+  return (
+    <div
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 500, overflow: 'hidden' }}
+    >
+      {/* Sliding strip — each slide is 100vw */}
+      <div style={{
+        display: 'flex',
+        height: '100%',
+        transform: `translateX(${translateX}px)`,
+        transition: dragging ? 'none' : 'transform 0.3s ease',
+        willChange: 'transform',
+      }}>
+        {images.map((img, i) => (
+          <div key={i} style={{ width: '100vw', flexShrink: 0, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src={img} alt="" style={{ maxWidth: '100vw', maxHeight: '100vh', objectFit: 'contain', display: 'block' }} />
+          </div>
+        ))}
+      </div>
+
+      {/* Close */}
+      <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: '50%', width: 40, height: 40, fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>×</button>
+
+      {/* Counter */}
+      <div style={{ position: 'absolute', top: 20, left: '50%', transform: 'translateX(-50%)', color: '#fff', fontSize: 13, fontWeight: 600, background: 'rgba(0,0,0,0.5)', padding: '4px 12px', borderRadius: 20, zIndex: 10 }}>
+        {current + 1} / {images.length}
+      </div>
+
+      {/* Arrows */}
+      {current > 0 && (
+        <button onClick={() => goTo(current - 1)} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: '50%', width: 44, height: 44, fontSize: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>‹</button>
+      )}
+      {current < images.length - 1 && (
+        <button onClick={() => goTo(current + 1)} style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: '50%', width: 44, height: 44, fontSize: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>›</button>
+      )}
+    </div>
+  );
+}
+
+function VanPage({ van, onBack }) {
+  const [fullscreenIndex, setFullscreenIndex] = useState(null);
+
+  return (
+    <>
+      <Head>
+        <title>{van.title} — ADEA Autos</title>
+        <style>{`body { margin: 0; font-family: Inter, sans-serif; background: #f5f5f3; }`}</style>
+      </Head>
+      <div style={{ minHeight: '100vh', background: '#f5f5f3', fontFamily: 'Inter, sans-serif' }}>
+
+        {/* Sticky back header */}
+        <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#fff', borderBottom: '1px solid #e5e5e2', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button type="button" onClick={onBack} style={{ background: '#f5f5f3', border: '1px solid #e5e5e2', color: '#111', fontSize: 18, cursor: 'pointer', lineHeight: 1, padding: '6px 14px', borderRadius: 8, fontWeight: 600 }}>← Назад</button>
+          <span style={{ fontWeight: 600, fontSize: 15, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{van.title}</span>
+        </div>
+
+        {/* Gallery */}
+        {van.images?.length > 0 && (
+          <SmoothGallery images={van.images} onFullscreen={(i) => setFullscreenIndex(i)} />
+        )}
+
+        {/* Details */}
+        <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px 16px 40px' }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.3, marginBottom: 12, color: '#111' }}>{van.title}</h1>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
             {[van.year, van.mileage ? `${Number(van.mileage).toLocaleString()} км` : null, van.fuel, van.transmission].filter(Boolean).map((tag, i) => (
-              <span key={i} style={{ background: '#f5f5f3', border: '1px solid #e5e5e2', borderRadius: 4, padding: '4px 10px', fontSize: 13, color: '#555', fontWeight: 500 }}>{tag}</span>
+              <span key={i} style={{ background: '#fff', border: '1px solid #e5e5e2', borderRadius: 4, padding: '4px 10px', fontSize: 13, color: '#555', fontWeight: 500 }}>{tag}</span>
             ))}
           </div>
-          <p style={{ color: '#666', lineHeight: 1.75, marginBottom: 20, fontSize: 14 }}>{van.description}</p>
           <div style={{ marginBottom: 20 }}>
-            <span style={{ fontSize: 32, fontWeight: 700, color: '#111' }}>€{Number(van.price).toLocaleString()}</span>
+            <span style={{ fontSize: 34, fontWeight: 700, color: '#111' }}>€{Number(van.price).toLocaleString()}</span>
           </div>
+          <p style={{ color: '#555', lineHeight: 1.8, fontSize: 14, marginBottom: 28, whiteSpace: 'pre-wrap' }}>{van.description}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <a href={WA1} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#25D366', color: '#fff', padding: '14px', borderRadius: 8, fontWeight: 700, fontSize: 15, textDecoration: 'none' }}>
+            <a href={WA1} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#25D366', color: '#fff', padding: '15px', borderRadius: 8, fontWeight: 700, fontSize: 15, textDecoration: 'none' }}>
               <WhatsAppIcon /> 072 599 436
             </a>
-            <a href={WA2} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#25D366', color: '#fff', padding: '14px', borderRadius: 8, fontWeight: 700, fontSize: 15, textDecoration: 'none' }}>
+            <a href={WA2} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#25D366', color: '#fff', padding: '15px', borderRadius: 8, fontWeight: 700, fontSize: 15, textDecoration: 'none' }}>
               <WhatsAppIcon /> 070 424 069
             </a>
           </div>
         </div>
       </div>
-    </div>
+
+      {fullscreenIndex !== null && (
+        <FullscreenViewer images={van.images} startIndex={fullscreenIndex} onClose={() => setFullscreenIndex(null)} />
+      )}
+    </>
   );
 }
