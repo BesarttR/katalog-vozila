@@ -29,31 +29,65 @@ export default function Home() {
         <title>ADEA Autos — Увоз на Товарни Возила</title>
         <meta name="description" content="Товарни возила за продажба. ADEA Autos." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>{`
+          @media (min-width: 768px) {
+            .hero-inner {
+              display: flex !important;
+              align-items: center !important;
+              justify-content: space-between !important;
+              gap: 40px !important;
+            }
+            .hero-buttons {
+              flex-direction: row !important;
+              justify-content: flex-end !important;
+              flex-shrink: 0 !important;
+            }
+            .hero-btn {
+              width: 200px !important;
+            }
+            .van-grid {
+              grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+            }
+            .footer-inner {
+              max-width: 1100px !important;
+              margin: 0 auto !important;
+              display: flex !important;
+              justify-content: space-between !important;
+              align-items: flex-start !important;
+              flex-wrap: wrap !important;
+              gap: 20px !important;
+            }
+          }
+        `}</style>
       </Head>
 
       <div style={{ minHeight: '100vh', background: '#f5f5f3', fontFamily: 'Inter, sans-serif' }}>
 
         {/* HERO */}
-        <div style={{ background: '#fff', borderBottom: '1px solid #e5e5e2', padding: '20px 16px 20px' }}>
-          <img src="/logo.jpg" alt="ADEA Autos" style={{ width: '100%', maxWidth: 340, height: 'auto', display: 'block', marginBottom: 16 }} />
-          <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: '2px', color: '#f97316', textTransform: 'uppercase', marginBottom: 6 }}>
-            Увоз на товарни возила
-          </p>
-          <h1 style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, color: '#111', marginBottom: 16 }}>
-            Товарни возила за продажба
-          </h1>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <a href={WA1} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#25D366', color: '#fff', padding: '13px 20px', borderRadius: 8, fontSize: 15, fontWeight: 700, textDecoration: 'none' }}>
-              <WhatsAppIcon /> 072 599 436
-            </a>
-            <a href={WA2} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#25D366', color: '#fff', padding: '13px 20px', borderRadius: 8, fontSize: 15, fontWeight: 700, textDecoration: 'none' }}>
-              <WhatsAppIcon /> 070 424 069
-            </a>
+        <div style={{ background: '#fff', borderBottom: '1px solid #e5e5e2', padding: '20px 24px' }}>
+          <div className="hero-inner" style={{ maxWidth: 1100, margin: '0 auto' }}>
+            <div>
+              <img src="/logo.jpg" alt="ADEA Autos" style={{ width: '100%', maxWidth: 340, height: 'auto', display: 'block', marginBottom: 16 }} />
+              <p style={{ fontSize: 10, fontWeight: 600, letterSpacing: '2px', color: '#f97316', textTransform: 'uppercase', marginBottom: 6 }}>
+                Увоз на товарни возила
+              </p>
+              <h1 style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.2, color: '#111', marginBottom: 16 }}>
+                Товарни возила за продажба
+              </h1>
+            </div>
+            <div className="hero-buttons" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <a href={WA1} target="_blank" rel="noopener noreferrer" className="hero-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#25D366', color: '#fff', padding: '13px 20px', borderRadius: 8, fontSize: 15, fontWeight: 700, textDecoration: 'none' }}>
+                <WhatsAppIcon /> 072 599 436
+              </a>
+              <a href={WA2} target="_blank" rel="noopener noreferrer" className="hero-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#25D366', color: '#fff', padding: '13px 20px', borderRadius: 8, fontSize: 15, fontWeight: 700, textDecoration: 'none' }}>
+                <WhatsAppIcon /> 070 424 069
+              </a>
+            </div>
           </div>
         </div>
 
         {/* VAN LIST */}
-        <div style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="van-grid" style={{ padding: '24px', maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
           {loading && (
             <p style={{ textAlign: 'center', color: '#aaa', padding: '60px 0', fontSize: 15 }}>Се вчитува...</p>
           )}
@@ -68,19 +102,21 @@ export default function Home() {
         </div>
 
         {/* FOOTER */}
-        <footer style={{ background: '#111', color: '#aaa', marginTop: 8, padding: '24px 16px' }}>
-          <div style={{ marginBottom: 16 }}>
-            <p style={{ color: '#fff', fontWeight: 700, fontSize: 15, marginBottom: 2 }}>ADEA Autos</p>
-            <p style={{ fontSize: 13 }}>Увоз на товарни возила</p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, marginBottom: 16 }}>
-        <a href="tel:+38972599436" style={{ color: '#f97316', fontWeight: 600 }}>072 599 436</a>
-<a href="tel:+38970424069" style={{ color: '#f97316', fontWeight: 600 }}>070 424 069</a>
-            <a href="mailto:besartr1995@gmail.com" style={{ color: '#555', fontSize: 12 }}>besartr1995@gmail.com</a>
-          </div>
-          <div style={{ borderTop: '1px solid #222', paddingTop: 14, fontSize: 12, color: '#444', display: 'flex', justifyContent: 'space-between' }}>
-            <span>© {new Date().getFullYear()} ADEA Autos</span>
-            <a href="/admin" style={{ color: '#444' }}>Администрација</a>
+        <footer style={{ background: '#111', color: '#aaa', marginTop: 8, padding: '24px 24px' }}>
+          <div className="footer-inner">
+            <div style={{ marginBottom: 16 }}>
+              <p style={{ color: '#fff', fontWeight: 700, fontSize: 15, marginBottom: 2 }}>ADEA Autos</p>
+              <p style={{ fontSize: 13 }}>Увоз на товарни возила</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, marginBottom: 16 }}>
+              <a href="tel:+38972599436" style={{ color: '#f97316', fontWeight: 600 }}>072 599 436</a>
+              <a href="tel:+38970424069" style={{ color: '#f97316', fontWeight: 600 }}>070 424 069</a>
+              <a href="mailto:besartr1995@gmail.com" style={{ color: '#555', fontSize: 12 }}>besartr1995@gmail.com</a>
+            </div>
+            <div style={{ borderTop: '1px solid #222', paddingTop: 14, fontSize: 12, color: '#444', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <span>© {new Date().getFullYear()} ADEA Autos</span>
+              <a href="/admin" style={{ color: '#444' }}>Администрација</a>
+            </div>
           </div>
         </footer>
       </div>
@@ -135,10 +171,10 @@ function VanModal({ van, onClose }) {
           <img src={van.images[0]} alt={van.title} style={{ width: '100%', height: 240, objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />
         )}
         <div style={{ padding: '20px 16px 32px' }}>
-        <div style={{ marginBottom: 12 }}>
-  <button onClick={onClose} style={{ background: '#f5f5f3', border: '1px solid #e5e5e2', color: '#444', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', marginBottom: 10 }}>← Назад</button>
-  <h2 style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.3 }}>{van.title}</h2>
-</div>
+          <div style={{ marginBottom: 12 }}>
+            <button onClick={onClose} style={{ background: '#f5f5f3', border: '1px solid #e5e5e2', color: '#444', borderRadius: 6, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', marginBottom: 10 }}>← Назад</button>
+            <h2 style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.3 }}>{van.title}</h2>
+          </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
             {[van.year, van.mileage ? `${Number(van.mileage).toLocaleString()} км` : null, van.fuel, van.transmission].filter(Boolean).map((tag, i) => (
               <span key={i} style={{ background: '#f5f5f3', border: '1px solid #e5e5e2', borderRadius: 4, padding: '4px 10px', fontSize: 13, color: '#555', fontWeight: 500 }}>{tag}</span>
