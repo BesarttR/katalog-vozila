@@ -1,27 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import Head from 'next/head';
-import { supabase } from '../lib/supabase';
+import { vans as allVans } from '../lib/vans';
 
 const WA1 = 'https://wa.me/38972599436';
 const WA2 = 'https://wa.me/38970424069';
 
-export default function Home() {
-  const [vans, setVans] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [loading, setLoading] = useState(true);
+const vans = allVans.filter(v => v.status === 'available');
 
-  useEffect(() => {
-    async function load() {
-      const { data } = await supabase
-        .from('vans')
-        .select('*')
-        .eq('status', 'available')
-        .order('created_at', { ascending: false });
-      setVans(data || []);
-      setLoading(false);
-    }
-    load();
-  }, []);
+export default function Home() {
+  const [selected, setSelected] = useState(null);
 
   if (selected) {
     return <VanPage van={selected} onBack={() => setSelected(null)} />;
@@ -90,8 +77,7 @@ export default function Home() {
 
         {/* VAN LIST */}
         <div className="van-grid" style={{ padding: '24px', maxWidth: 1100, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
-          {loading && <p style={{ textAlign: 'center', color: '#aaa', padding: '60px 0', fontSize: 15 }}>Се вчитува...</p>}
-          {!loading && vans.length === 0 && <p style={{ textAlign: 'center', color: '#aaa', padding: '60px 0', fontSize: 15 }}>Во моментов нема достапни возила.</p>}
+          {vans.length === 0 && <p style={{ textAlign: 'center', color: '#aaa', padding: '60px 0', fontSize: 15 }}>Во моментов нема достапни возила.</p>}
           {vans.map(van => (
             <VanCard key={van.id} van={van} onClick={() => setSelected(van)} />
           ))}
@@ -109,9 +95,8 @@ export default function Home() {
               <a href="tel:+38970424069" style={{ color: '#f97316', fontWeight: 600 }}>070 424 069</a>
               <a href="mailto:besartr1995@gmail.com" style={{ color: '#555', fontSize: 12 }}>besartr1995@gmail.com</a>
             </div>
-            <div style={{ borderTop: '1px solid #222', paddingTop: 14, fontSize: 12, color: '#444', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <div style={{ borderTop: '1px solid #222', paddingTop: 14, fontSize: 12, color: '#444', width: '100%' }}>
               <span>© {new Date().getFullYear()} ADEA Autos</span>
-              <a href="/admin" style={{ color: '#444' }}>Администрација</a>
             </div>
           </div>
         </footer>
@@ -149,7 +134,7 @@ function VanCard({ van, onClick }) {
           {van.description}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontSize: 24, fontWeight: 700, color: '#111' }}>€{Number(van.price).toLocaleString()}</span>
+          <span style={{ fontSize: 24, fontWeight: 700, color: '#111' }}>{van.price ? "€" + Number(van.price).toLocaleString() : ""}</span>
           <span style={{ fontSize: 13, color: '#f97316', fontWeight: 600 }}>Погледни →</span>
         </div>
       </div>
@@ -332,7 +317,7 @@ function VanPage({ van, onBack }) {
             ))}
           </div>
           <div style={{ marginBottom: 20 }}>
-            <span style={{ fontSize: 34, fontWeight: 700, color: '#111' }}>€{Number(van.price).toLocaleString()}</span>
+            <span style={{ fontSize: 34, fontWeight: 700, color: '#111' }}>{van.price ? "€" + Number(van.price).toLocaleString() : ""}</span>
           </div>
           <p style={{ color: '#555', lineHeight: 1.8, fontSize: 14, marginBottom: 28, whiteSpace: 'pre-wrap' }}>{van.description}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
